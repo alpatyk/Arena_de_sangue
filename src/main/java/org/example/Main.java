@@ -18,7 +18,6 @@ public class Main {
         String nome2 = scanner.nextLine();
         Personagem p2 = escolherPersonagem(nome2, scanner);
 
-        // Batalha
         Batalha batalha = new Batalha(p1, p2);
         batalha.iniciar();
 

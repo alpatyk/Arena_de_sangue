@@ -1,6 +1,6 @@
 package org.example.service;
 
-import org.example.model.Personagem;
+import org.example.model.*;
 import java.util.Scanner;
 
 public class Batalha {
@@ -16,9 +16,7 @@ public class Batalha {
 
     public void iniciar() {
         System.out.println("\n⚔️ BATALHA INICIADA ⚔️");
-        System.out.println(p1);
-        System.out.println("VS");
-        System.out.println(p2);
+        mostrarStatus();
         System.out.println("===================\n");
 
         while (!batalhaTerminou()) {
@@ -30,10 +28,13 @@ public class Batalha {
 
     private void rodada() {
         System.out.println("\n--- RODADA ---");
-        System.out.println(p1);
-        System.out.println(p2);
+        mostrarStatus();
 
-        // Quem ataca primeiro (baseado na agilidade)
+        // Mostrar recursos especiais
+        mostrarRecursos(p1);
+        mostrarRecursos(p2);
+
+        // Quem ataca primeiro
         if (p1.getAgilidade() >= p2.getAgilidade()) {
             executarTurno(p1, p2);
             if (p2.estaVivo()) {
@@ -47,13 +48,50 @@ public class Batalha {
         }
     }
 
+    private void mostrarRecursos(Personagem p) {
+        if (p instanceof Guerreiro) {
+            Guerreiro g = (Guerreiro) p;
+            System.out.println("   [Fúria: " + g.getFuria() + "/100]");
+        } else if (p instanceof Mago) {
+            Mago m = (Mago) p;
+            System.out.println("   [Mana: " + m.getMana() + "/100]");
+        } else if (p instanceof Patrulheiro) {
+            Patrulheiro pt = (Patrulheiro) p;
+            System.out.println("   [Flechas: " + pt.getFlechas() + "/12" +
+                    (pt.isModoFurtivo() ? " | Modo Furtivo ATIVO]" : "]"));
+        }
+    }
+
     private void executarTurno(Personagem atacante, Personagem defensor) {
         System.out.println("\n🎮 Vez de " + atacante.getNome());
-        System.out.println("1 - Ataque Normal");
-        System.out.println("2 - Habilidade Especial");
-        System.out.println("3 - Defender");
 
-        int escolha = scanner.nextInt();
+        // Opções especiais para Patrulheiro
+        if (atacante instanceof Patrulheiro) {
+            System.out.println("1 - Ataque Normal");
+            System.out.println("2 - Habilidade Especial");
+            System.out.println("3 - Defender");
+            System.out.println("4 - Recarregar Flechas (gasta turno)");
+
+            int escolha = scanner.nextInt();
+
+            if (escolha == 4) {
+                ((Patrulheiro) atacante).recarregar();
+                return;
+            }
+
+            processarAcao(escolha, atacante, defensor);
+
+        } else {
+            System.out.println("1 - Ataque Normal");
+            System.out.println("2 - Habilidade Especial");
+            System.out.println("3 - Defender");
+
+            int escolha = scanner.nextInt();
+            processarAcao(escolha, atacante, defensor);
+        }
+    }
+
+    private void processarAcao(int escolha, Personagem atacante, Personagem defensor) {
         int dano = 0;
 
         switch (escolha) {
@@ -68,11 +106,18 @@ public class Batalha {
                 System.out.println(atacante.getNome() + " se defendeu!");
                 return;
             default:
-                System.out.println("Opção inválida!");
-                return;
+                System.out.println("Opção inválida! Usando ataque normal.");
+                dano = atacante.atacar();
         }
 
-        defensor.receberDano(dano);
+        if (dano > 0) {
+            defensor.receberDano(dano);
+        }
+    }
+
+    private void mostrarStatus() {
+        System.out.println(p1);
+        System.out.println(p2);
     }
 
     private boolean batalhaTerminou() {

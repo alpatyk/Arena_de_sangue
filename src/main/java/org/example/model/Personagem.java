@@ -1,6 +1,9 @@
 package org.example.model;
 
+import org.example.dano.*;
+
 public abstract class Personagem {
+
     private String nome;
     private int hp;
     private int hpMax;
@@ -8,58 +11,72 @@ public abstract class Personagem {
     private int defesa;
     private int agilidade;
     private String classe;
+    private int recursoEspecial;
+    private int recursoMaximo;
 
-    public Personagem(String nome, int hp, int forca, int defesa, int agilidade, String classe) {
+    public Personagem(String nome, int hp, int hpMax, int forca, int defesa, int agilidade,
+                      String classe, int recursoEspecial, int recursoMaximo) {
         this.nome = nome;
         this.hp = hp;
-        this.hpMax = hp;
+        this.hpMax = hpMax;
         this.forca = forca;
         this.defesa = defesa;
         this.agilidade = agilidade;
         this.classe = classe;
+        this.recursoEspecial = recursoEspecial;
+        this.recursoMaximo = recursoMaximo;
     }
 
-    // Métodos abstratos
-    public abstract int habilidadeEspecial();
-    public abstract int defender();
-
-    // Métodos concretos
-    public int atacar() {
-        return this.forca + (int)(Math.random() * 10);
-    }
-
-    public void receberDano(int dano) {
-        int danoCalculado = Math.max(0, dano - this.defesa);
-        this.hp = Math.max(0, this.hp - danoCalculado);
-        System.out.println(this.nome + " recebeu " + danoCalculado + " de dano! HP: " + this.hp + "/" + this.hpMax);
-    }
-
-    // Getters e Setters
     public String getNome() { return nome; }
-    public void setNome(String nome) { this.nome = nome; }
-
     public int getHp() { return hp; }
-    public void setHp(int hp) { this.hp = hp; }
-
     public int getHpMax() { return hpMax; }
-
     public int getForca() { return forca; }
-    public void setForca(int forca) { this.forca = forca; }
-
     public int getDefesa() { return defesa; }
-    public void setDefesa(int defesa) { this.defesa = defesa; }
-
     public int getAgilidade() { return agilidade; }
-    public void setAgilidade(int agilidade) { this.agilidade = agilidade; }
-
     public String getClasse() { return classe; }
+    public int getRecursoEspecial() { return recursoEspecial; }
+    public int getRecursoMaximo() { return recursoMaximo; }
 
-    public boolean estaVivo() {
-        return hp > 0;
+    public void setForca(int forca) { this.forca = forca; }
+    public void setRecursoEspecial(int recursoEspecial) { this.recursoEspecial = recursoEspecial; }
+
+    public void receberDano(Dano dano) {
+
+        if (dano.isEhCritico()) {
+            System.out.println("💥 GOLPE CRÍTICO! 💥");
+        }
+
+        dano.exibir();
+
+        int danoFinal = dano.calcularDanoFinal(this);
+
+        this.hp = Math.max(0, this.hp - danoFinal);
+
+        System.out.println(nome + " recebeu " + danoFinal + " de dano! HP: "
+                + hp + "/" + hpMax);
     }
 
-    @Override
-    public String toString() {
-        return String.format("%s [%s] - %d/%d HP", nome, classe, hp, hpMax);
+    public Dano criarDanoNormal() {
+        int valor = this.forca + (int)(Math.random() * 10);
+        boolean ehCritico = Math.random() < 0.1;
+
+        return new Dano(
+                valor,
+                Dano.TipoDano.FISICO,
+                ehCritico,
+                "Ataque Normal"
+        );
     }
+
+    public Dano atacar() {
+        return criarDanoNormal();
+    }
+
+    public abstract Dano habilidadeEspecial();
+
+    public Dano usarHabilidadeEspecial() {
+        return habilidadeEspecial();
+    }
+
+    public abstract int defender();
 }
